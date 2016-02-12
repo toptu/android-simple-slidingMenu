@@ -73,4 +73,12 @@ public abstract class BaseSlidMenuAcitivity extends Activity {
 		LayoutParams params = new LayoutParams(width, LayoutParams.MATCH_PARENT);
 		menuView.setLayoutParams(params);
 	}
+	
+	protected void setSlidingMenuEnable(boolean enable){
+		if(enable){
+			slideMenu.openEnable() ;
+		}else{
+			slideMenu.notEnable() ;
+		}
+	}
 }

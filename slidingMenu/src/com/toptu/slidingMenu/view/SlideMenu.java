@@ -1,7 +1,5 @@
 package com.toptu.slidingMenu.view;
 
-
-
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -19,6 +17,7 @@ public class SlideMenu extends FrameLayout {
 	private boolean isShowMenu = false;
 	private Scroller scroller;
 	private View view;
+	private boolean enable = true;
 
 	public SlideMenu(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -35,25 +34,25 @@ public class SlideMenu extends FrameLayout {
 		scroller = new Scroller(getContext());
 	}
 
-//	@Override
-//	protected void onFinishInflate() {
-//	一级子类系统填充完成时调用（自己动态填充一级子类不可以）
-//		super.onFinishInflate();
-//		mainView = getChildAt(0);
-//		menuView = getChildAt(1);
-//	}
+	// @Override
+	// protected void onFinishInflate() {
+	// 一级子类系统填充完成时调用（自己动态填充一级子类不可以）
+	// super.onFinishInflate();
+	// mainView = getChildAt(0);
+	// menuView = getChildAt(1);
+	// }
 
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 		// TODO Auto-generated method stub
-		mainView = (ViewGroup) getChildAt(0) ;
+		mainView = (ViewGroup) getChildAt(0);
 		menuView = getChildAt(1);
-		view = mainView.getChildAt(1);//覆盖homeView的view
+		view = mainView.getChildAt(1);// 覆盖homeView的view
 		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-//		mainView.measure(widthMeasureSpec, heightMeasureSpec);
-//		int measureSpec = MeasureSpec.makeMeasureSpec(
-//				menuView.getLayoutParams().width, MeasureSpec.EXACTLY);
-//		menuView.measure(measureSpec, heightMeasureSpec);
+		// mainView.measure(widthMeasureSpec, heightMeasureSpec);
+		// int measureSpec = MeasureSpec.makeMeasureSpec(
+		// menuView.getLayoutParams().width, MeasureSpec.EXACTLY);
+		// menuView.measure(measureSpec, heightMeasureSpec);
 	}
 
 	@Override
@@ -66,80 +65,86 @@ public class SlideMenu extends FrameLayout {
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		// TODO Auto-generated method stub		
-		switch (event.getAction()) {
-		case MotionEvent.ACTION_DOWN:
+		// TODO Auto-generated method stub
+		if (enable) {
+			switch (event.getAction()) {
+			case MotionEvent.ACTION_DOWN:
 
-			downX = (int) event.getRawX();
+				downX = (int) event.getRawX();
 
-			break;
-		case MotionEvent.ACTION_MOVE:
+				break;
+			case MotionEvent.ACTION_MOVE:
 
-			int moveX = (int) event.getRawX();// 当前移动到的点
-			int differenceX = moveX - downX;// 此次移动的差值
+				int moveX = (int) event.getRawX();// 当前移动到的点
+				int differenceX = moveX - downX;// 此次移动的差值
 
-			int newScrollX = getScrollX() - differenceX;
-			// 设置移动的边界
-			if (newScrollX < -menuViewWidth) {
-				newScrollX = -menuViewWidth;
-			} else if (newScrollX > 0) {
-				newScrollX = 0;
+				int newScrollX = getScrollX() - differenceX;
+				// 设置移动的边界
+				if (newScrollX < -menuViewWidth) {
+					newScrollX = -menuViewWidth;
+				} else if (newScrollX > 0) {
+					newScrollX = 0;
+				}
+				scrollTo(newScrollX, 0);
+				downX = moveX;
+
+				break;
+			case MotionEvent.ACTION_UP:
+
+				if (getScrollX() < -menuViewWidth / 2) {
+					// 显示
+					showMenu();
+				} else {
+					// 不显示
+					hideMenu();
+				}
+				break;
 			}
-			scrollTo(newScrollX, 0);
-			downX = moveX;
-
-			break;
-		case MotionEvent.ACTION_UP:
-
-			if (getScrollX() < -menuViewWidth / 2) {
-				// 显示
-				showMenu();
-			} else {
-				// 不显示
-				hideMenu();
-			}
-			break;
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent ev) {
 		// TODO Auto-generated method stub
-		switch (ev.getAction()) {
-		case MotionEvent.ACTION_DOWN:
-			downX = (int) ev.getRawX();
-			break;
-		case MotionEvent.ACTION_MOVE:
-			int distanceX = (int) (ev.getRawX()-downX) ;
-			if(Math.abs(distanceX) > 11){
-				downX = downX + distanceX ;
-				return true ;
-			}
-			break;
-		case MotionEvent.ACTION_UP:
+		if (isShowMenu) {
+			switch (ev.getAction()) {
+			case MotionEvent.ACTION_DOWN:
+				downX = (int) ev.getRawX();
+				break;
+			case MotionEvent.ACTION_MOVE:
+				int distanceX = (int) (ev.getRawX() - downX);
+				if (Math.abs(distanceX) > 11) {
+					downX = downX + distanceX;
+					return true;
+				}
+				break;
+			case MotionEvent.ACTION_UP:
 
-			break;
+				break;
+			}
 		}
 		return false;
 	}
 
 	public void hideMenu() {
 		isShowMenu = false;
-		view.setVisibility(View.INVISIBLE) ;
+		view.setVisibility(View.INVISIBLE);
 		// 使用自定义动画做平滑(太卡)
 		// ScrollAnimation hideAnimation = new ScrollAnimation(this, 0) ;
 		// startAnimation(hideAnimation) ;
 
 		// 使用scroller做平滑
 		int distanceX = 0 - getScrollX();
-		scroller.startScroll(getScrollX(), 0, distanceX, 0, Math.abs(distanceX)*2);
+		scroller.startScroll(getScrollX(), 0, distanceX, 0,
+				Math.abs(distanceX) * 2);
 		invalidate();
 	}
 
 	public void showMenu() {
 		isShowMenu = true;
-		view.setVisibility(View.VISIBLE) ;
+		view.setVisibility(View.VISIBLE);
 		// 使用自定义动画做平滑(太卡)
 		// ScrollAnimation hideAnimation = new ScrollAnimation(this,
 		// -menuViewWidth) ;
@@ -147,7 +152,8 @@ public class SlideMenu extends FrameLayout {
 
 		// 使用scroller做平滑
 		int distanceX = -menuViewWidth - getScrollX();
-		scroller.startScroll(getScrollX(), 0, distanceX, 0, Math.abs(distanceX)*2);
+		scroller.startScroll(getScrollX(), 0, distanceX, 0,
+				Math.abs(distanceX) * 2);
 		invalidate();
 	}
 
@@ -163,6 +169,15 @@ public class SlideMenu extends FrameLayout {
 			scrollTo(scroller.getCurrX(), 0);
 			invalidate();
 		}
+	}
+
+	public void notEnable() {
+		enable = false;
+		if(isShowMenu)
+			hideMenu() ;
+	}
+	public void openEnable() {
+		enable = true ;
 	}
 
 }
